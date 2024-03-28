@@ -98,6 +98,7 @@ function Particle(x, y, radius, color) {
     this.draw = function () {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        // https://www.tutorialspoint.com/html5/canvas_states.htm
         //! we save the default with no fill or stroke style state into a stack
         ctx.save();
         // set opacity
