@@ -119,6 +119,8 @@ function animate() {
     if (mouseDown && alpha >= 0.01) {
         alpha -= 0.01;
         console.log(alpha)
+    } else if (!mouseDown && alpha <= 1) {
+        alpha += 0.01;
     }
 }
 init();
