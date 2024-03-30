@@ -130,12 +130,20 @@ class Particle {
     }
     draw() {
         ctx.save();
+
+        ctx.shadowBlur = 20; // Adjust the value to get the desired glow effect
+        ctx.shadowColor = this.color; // Change the color to the color of your glow
+
         ctx.beginPath();
         ctx.globalAlpha = this.alpha;
         ctx.arc(this.InitPos.xPos, this.InitPos.yPos, this.radius, 0, Math.PI * 2, false);
         ctx.fillStyle = this.color;
         ctx.fill();
         ctx.closePath();
+
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+
         ctx.restore();
     }
     update() {
@@ -165,11 +173,17 @@ class Projectile {
         this.velocity = velocity;
     }
     draw() {
+        ctx.shadowBlur = 20; // Adjust the value to get the desired glow effect
+        ctx.shadowColor = this.color; // Change the color to the color of your glow
+
         ctx.beginPath();
         ctx.arc(this.InitPos.xPos, this.InitPos.yPos, this.radius, 0, Math.PI * 2, false);
         ctx.fillStyle = this.color;
         ctx.fill();
         ctx.closePath();
+
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
     }
     update() {
         this.draw();
