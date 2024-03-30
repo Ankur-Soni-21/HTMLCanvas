@@ -42,8 +42,7 @@ let projectiles = [];
 
 let particles = [];
 //--------------------------------------------------------------------------------------------------------------------------------------------
-
-
+let stars = [];
 
 
 //--------------------------------------------------------------------------------------------------------------------------------------------
@@ -53,6 +52,10 @@ function randIntGen(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
+function randFloatGen(min, max) {
+    return Math.random() * (max - min + 1) + min
+
+}
 //--------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -66,6 +69,10 @@ class Player {
     constructor(x, y, radius, color) {
         this.xPos = x;
         this.yPos = y;
+        this.initPos = {
+            xPos: x,
+            yPos: y
+        }
         this.radius = radius;
         this.color = color;
     }
@@ -77,6 +84,13 @@ class Player {
         ctx.closePath();
     }
     update() {
+        // Move the player back to its original position
+        if (this.xPos !== this.initPos.xPos) {
+            this.xPos += (this.initPos.xPos - this.xPos) * 0.05;
+        }
+        if (this.yPos !== this.initPos.yPos) {
+            this.yPos += (this.initPos.yPos - this.yPos) * 0.05;
+        }
         this.draw();
     }
 };
@@ -159,7 +173,7 @@ class Particle {
 //--------------------------------------------------------------------------------------------------------------------------------------------
 
 class Projectile {
-    constructor(x, y, radius, color, velocity) {
+    constructor(x, y, radius, color, velocity, angle) {
         this.InitPos = {
             xPos: innerWidth / 2,
             yPos: innerHeight / 2
@@ -171,6 +185,7 @@ class Projectile {
         this.radius = radius;
         this.color = color;
         this.velocity = velocity;
+        this.angle = angle;
     }
     draw() {
         ctx.shadowBlur = 20; // Adjust the value to get the desired glow effect
@@ -199,7 +214,47 @@ class Projectile {
     }
 };
 //--------------------------------------------------------------------------------------------------------------------------------------------
+class Star {
+    constructor(x, y, radius, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.color = color;
+        this.alpha = 0.1;
+        this.radians = randFloatGen(0, Math.PI * 2)
+        this.distFromCenter = randFloatGen(350, innerWidth);
+        this.velocity = 0.04;
 
+    }
+
+    draw() {
+        // Set the glow effect
+        ctx.save();
+
+        ctx.shadowBlur = 40; // Adjust the value to get the desired glow effect
+        ctx.shadowColor = this.color; // Change the color to the color of your glow
+
+        // Draw your player
+        ctx.beginPath();
+        ctx.globalAlpha = this.alpha;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        ctx.fillStyle = this.color; // Change the color to the color of your player
+        ctx.fill();
+        ctx.closePath();
+
+        // Reset the glow effect
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+        ctx.restore();
+
+    }
+    update() {
+        this.radians += this.velocity / 75;
+        this.x = innerWidth / 2 + Math.cos(this.radians) * this.distFromCenter;
+        this.y = innerHeight / 2 + Math.sin(this.radians) * this.distFromCenter;
+        this.draw();
+    }
+}
 
 // Implementation
 
@@ -218,6 +273,7 @@ function init() {
     enemies = [];
     projectiles = [];
     particles = [];
+    stars = [];
     player = new Player(innerWidth / 2, innerHeight / 2, 20, 'white');
     score = 0;
     scoreEl.innerHTML = score;
@@ -238,7 +294,7 @@ function spawnEnemies() {
 function spawn() {
     let x = undefined;
     let y = undefined;
-    const radius = randIntGen(15, 40);
+    const radius = randIntGen(15, 35);
     if (Math.random() > 0.5) {
         x = Math.random() > 0.5 ? -radius : innerWidth + radius;
         y = Math.random() * innerHeight;
@@ -261,6 +317,16 @@ function spawn() {
     spawnInterval = setInterval(spawn, spawnTime)
 }
 
+function spawnStars() {
+    for (let i = 0; i < 200; i++) {
+        let radius = randFloatGen(0, 2);
+        let x = randFloatGen(radius, innerWidth - radius);
+        let y = randFloatGen(radius, innerHeight - radius);
+        let color = colors[Math.floor(Math.random() * colors.length)];
+        stars.push(new Star(x, y, radius, color));
+    }
+}
+
 
 // ANIMATE FUNCTION
 function animate() {
@@ -274,7 +340,15 @@ function animate() {
     ctx.fillRect(0, 0, innerWidth, innerHeight);
     player.update();
 
+    // Stars Background
+    stars.forEach(star => {
+        star.update();
+        // console.log(star);
+    });
 
+
+
+    //Collision Particles
     particles.forEach(particle => {
         particle.update();
         if (particle.alpha <= 0) {
@@ -319,6 +393,10 @@ function animate() {
 
 
             if (dist - enemy.radius - projectile.radius < 1) {
+                // push effect for enemies
+                const recoilDistance = 10;
+                enemy.InitPos.xPos += recoilDistance * Math.cos(projectile.angle)
+                enemy.InitPos.yPos += recoilDistance * Math.sin(projectile.angle)
 
                 // create explosions
                 for (let i = 0; i < enemy.radius * 3; i++) {
@@ -365,9 +443,14 @@ addEventListener('click', function (event) {
         {
             x: Math.cos(angle) * 4,
             y: Math.sin(angle) * 4
-        }
+        },
+        angle
     );
     projectiles.push(projectile);
+    // recoil
+    const recoilDistance = 5;
+    player.xPos -= recoilDistance * Math.cos(angle)
+    player.yPos -= recoilDistance * Math.sin(angle)
 
 })
 
@@ -376,6 +459,7 @@ addEventListener('resize', function () {
     canvas.width = this.innerWidth;
     canvas.height = this.innerHeight;
     init();
+    spawnStars();
 })
 
 // PAUSE/PLAY 
@@ -411,6 +495,7 @@ startGameBtn.addEventListener('click', () => {
     animate();
     spawnTime = 2000;
     spawnEnemies();
+    spawnStars();
     modelEl.style.display = "none";
     playBtn.style.display = 'none';
     pauseBtn.style.display = 'flex';
@@ -421,4 +506,5 @@ setInterval(() => {
     console.log(bestScore);
     console.log(enemies);
     console.log(spawnTime);
+    console.log(stars.length)
 }, 1000);   
