@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collsion Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black">
+    <div class="underline underline-offset-4 fixed p-2 rounded-lg text-white ml-10 mt-10 select-none"><span>Score :
+        </span><span id="scoreEl">0</span></div>
+    <div class="underline underline-offset-4 fixed right-10 p-2 rounded-lg text-white ml-10 mt-10 select-none">
+        <span>Best Score : </span><span id="bestScoreEl">0</span></div>
+
+    <div class="fixed inset-0 flex items-center justify-center" id="modelEl">
+        <div class="bg-white/30 backdrop-blur-lg rounded-lg max-w-md w-full p-6 text-center">
+            <h1 class=" select-none text-4xl text-white font-bold leading-none" id="scoreHeadEl">0</h1>
+            <p class=" select-none text-sm text-white mb-4 mt-2">Points</p>
+            <div>
+                <button id="startGameBtn"
+                    class=" text-white mx-auto backdrop-blur-lg select-none w-1/2 py-3 rounded-md transition ease-in-out hover:-translate-y-1 hover:scale-105 duration-300">Start
+                    Game
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pauseBtn" class="fixed inset-x-0 flex items-center justify-center mt-10 ">
+        <svg class="fill-gray-200 h-16 w-16" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+            fill="currentColor" class="bi bi-pause" viewBox="0 0 16 16">
+            <path
+                d="M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5m4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5" />
+        </svg>
+    </div>
+    <div id="playBtn" class=" hidden fixed inset-x-0 flex items-center justify-center mt-10">
+        <svg class="fill-gray-200 h-16 w-16" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+            fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
+            <path
+                d="M10.804 8 5 4.633v6.734zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696z" />
+        </svg>
+    </div>
+
+    <canvas></canvas>
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"
+        integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="canvas.js"></script>
+</body>
+
+</html>
