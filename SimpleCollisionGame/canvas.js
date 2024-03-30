@@ -13,19 +13,21 @@ const startGameBtn = document.querySelector('#startGameBtn')
 const modelEl = document.querySelector('#modelEl')
 const scoreHeadEl = document.querySelector('#scoreHeadEl')
 const bestScoreEl = document.querySelector('#bestScoreEl')
+const bestScoreHeadEl = document.querySelector('#bestScoreHeadEl')
 const playBtn = document.querySelector('#playBtn')
 const pauseBtn = document.querySelector('#pauseBtn')
 
 //--------------------------------------------------------------------------------------------------------------------------------------------
 
+modelEl.style.display = 'flex';
 playBtn.style.display = 'flex';
 pauseBtn.style.display = 'none';
 
 //--------------------------------------------------------------------------------------------------------------------------------------------
 
-let shootSound1 = new Audio('audio_assets/shoot1.wav')
-let hitDamageSound1 = new Audio('audio_assets/hitDamage1.wav')
-hitDamageSound1.volume = 0.5; 
+let hitDamageSound1 = new Audio('audio_assets/shoot1.wav')
+let shootSound1 = new Audio('audio_assets/hitDamage1.wav')
+shootSound1.volume = 0.5;
 
 // Objects
 const colors = [
@@ -68,6 +70,7 @@ function randFloatGen(min, max) {
 
 //--------------------------------------------------------------------------------------------------------------------------------------------
 
+
 class Player {
     constructor(x, y, radius, color) {
         this.xPos = x;
@@ -97,6 +100,38 @@ class Player {
         this.draw();
     }
 };
+
+class Pointer {
+    constructor(x, y, size, angle) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.angle = angle;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.moveTo(
+            this.x + Math.cos(this.angle) * this.size,
+            this.y + Math.sin(this.angle) * this.size
+        );
+        ctx.lineTo(
+            this.x + Math.cos(this.angle + 2 * Math.PI / 3) * this.size,
+            this.y + Math.sin(this.angle + 2 * Math.PI / 3) * this.size
+        );
+        ctx.lineTo(
+            this.x + Math.cos(this.angle + 4 * Math.PI / 3) * this.size,
+            this.y + Math.sin(this.angle + 4 * Math.PI / 3) * this.size
+        );
+        ctx.closePath();
+        ctx.fillStyle = 'white';
+        ctx.fill();
+    }
+
+    update() {
+        this.draw();
+    }
+}
 
 //--------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -177,10 +212,6 @@ class Particle {
 
 class Projectile {
     constructor(x, y, radius, color, velocity, angle) {
-        this.InitPos = {
-            xPos: innerWidth / 2,
-            yPos: innerHeight / 2
-        }
         this.FinalPos = {
             xPos: x,
             yPos: y
@@ -189,19 +220,49 @@ class Projectile {
         this.color = color;
         this.velocity = velocity;
         this.angle = angle;
+        this.InitPos = {
+            xPos: innerWidth / 2 + Math.cos(this.angle) * (this.radius + 30),
+            yPos: innerHeight / 2 + Math.sin(this.angle) * (this.radius + 30)
+        }
     }
     draw() {
+        // this.InitPos.xPos += Math.cos(this.angle) * (this.radius + 10);
+        // this.InitPos.yPos += Math.sin(this.angle) * (this.radius + 10);
+
         ctx.shadowBlur = 20; // Adjust the value to get the desired glow effect
         ctx.shadowColor = this.color; // Change the color to the color of your glow
 
+        // -----------------------------------------------------
+        // ctx.beginPath();
+        // ctx.arc(this.InitPos.xPos, this.InitPos.yPos, this.radius, 0, Math.PI * 2, false);
+        // ctx.fillStyle = this.color;
+        // ctx.fill();
+        // ctx.closePath();
+
+        //-------------------------------------------------------------
+
         ctx.beginPath();
-        ctx.arc(this.InitPos.xPos, this.InitPos.yPos, this.radius, 0, Math.PI * 2, false);
-        ctx.fillStyle = this.color;
-        ctx.fill();
+        ctx.moveTo(
+            this.InitPos.xPos + Math.cos(this.angle) * this.radius,
+            this.InitPos.yPos + Math.sin(this.angle) * this.radius
+        );
+        ctx.lineTo(
+            this.InitPos.xPos + Math.cos(this.angle + 2 * Math.PI / 3) * this.radius,
+            this.InitPos.yPos + Math.sin(this.angle + 2 * Math.PI / 3) * this.radius
+        );
+        ctx.lineTo(
+            this.InitPos.xPos + Math.cos(this.angle + 4 * Math.PI / 3) * this.radius,
+            this.InitPos.yPos + Math.sin(this.angle + 4 * Math.PI / 3) * this.radius
+        );
         ctx.closePath();
+        ctx.fillStyle = 'white';
+        ctx.fill();
+
+        //-----------------------------------------------------------
 
         ctx.shadowBlur = 0;
         ctx.shadowColor = 'transparent';
+
     }
     update() {
         this.draw();
@@ -225,8 +286,8 @@ class Star {
         this.color = color;
         this.alpha = 0.1;
         this.radians = randFloatGen(0, Math.PI * 2)
-        this.distFromCenter = randFloatGen(350, innerWidth);
-        this.velocity = 0.04;
+        this.distFromCenter = randFloatGen(150, innerWidth);
+        this.velocity = 0.01;
 
     }
 
@@ -270,6 +331,7 @@ let score = 0;
 let scoreList = JSON.parse(localStorage.getItem('scoreList')) || [];
 let bestScore = JSON.parse(localStorage.getItem('bestScore')) || 0;
 bestScoreEl.innerHTML = bestScore;
+bestScoreHeadEl.innerHTML = bestScore;
 
 // INITIALISZTION FUNCTION
 function init() {
@@ -283,6 +345,14 @@ function init() {
     scoreHeadEl.innerHTML = score;
 }
 
+function resize_init() {
+    player.initPos.xPos = innerWidth / 2;
+    player.initPos.yPos = innerHeight / 2;
+
+    enemies.forEach(enemy => {
+        enemy.update();
+    });
+}
 // INTERVAL ID
 let spawnInterval;
 let spawnTime = 2000;
@@ -308,8 +378,8 @@ function spawn() {
     const color = colors[Math.floor(Math.random() * colors.length)];
     const angle = Math.atan2(innerHeight / 2 - y, innerWidth / 2 - x);
     const velocity = {
-        x: Math.cos(angle),
-        y: Math.sin(angle)
+        x: Math.cos(angle) * 2,
+        y: Math.sin(angle) * 2
     }
 
     enemies.push(new Enemy(x, y, radius, color, velocity));
@@ -321,8 +391,8 @@ function spawn() {
 }
 
 function spawnStars() {
-    for (let i = 0; i < 200; i++) {
-        let radius = randFloatGen(0, 2);
+    for (let i = 0; i < 100; i++) {
+        let radius = randFloatGen(0, 1);
         let x = randFloatGen(radius, innerWidth - radius);
         let y = randFloatGen(radius, innerHeight - radius);
         let color = colors[Math.floor(Math.random() * colors.length)];
@@ -330,9 +400,9 @@ function spawnStars() {
     }
 }
 
-
 // ANIMATE FUNCTION
 function animate() {
+    aimPointer.update();
     // gameOver = false;
     if (pauseAnimation) {
         return;
@@ -385,6 +455,7 @@ function animate() {
             localStorage.setItem('scoreList', JSON.stringify(scoreList));
             bestScore = Math.max(Math.max(...scoreList), bestScore);
             bestScoreEl.innerHTML = bestScore;
+            bestScoreHeadEl.innerHTML = bestScore;
             localStorage.setItem('bestScore', JSON.stringify(bestScore));
         }
 
@@ -449,8 +520,8 @@ addEventListener('click', function (event) {
     const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2)
     const projectile = new Projectile(event.clientX, event.clientY, 5, 'white',
         {
-            x: Math.cos(angle) * 4,
-            y: Math.sin(angle) * 4
+            x: Math.cos(angle) * 8,
+            y: Math.sin(angle) * 8
         },
         angle
     );
@@ -471,8 +542,15 @@ addEventListener('click', function (event) {
 addEventListener('resize', function () {
     canvas.width = this.innerWidth;
     canvas.height = this.innerHeight;
-    init();
-    spawnStars();
+
+    resize_init();
+    //pause the game
+    playBtn.style.display = 'flex';
+    pauseBtn.style.display = 'none';
+    pauseAnimation = true;
+    clearInterval(spawnInterval);
+
+
 })
 
 // PAUSE/PLAY 
@@ -480,6 +558,7 @@ addEventListener('keypress', function (event) {
     console.log(pauseAnimation);
     if (event.code == "Space") {
         if (pauseAnimation) {
+            projectiles = [];
             playBtn.style.display = 'none';
             pauseBtn.style.display = 'flex';
             pauseAnimation = false;
@@ -507,17 +586,21 @@ startGameBtn.addEventListener('click', () => {
     init();
     animate();
     spawnTime = 2000;
-    spawnEnemies();
     spawnStars();
+    spawnEnemies();
     modelEl.style.display = "none";
     playBtn.style.display = 'none';
     pauseBtn.style.display = 'flex';
 })
 
-setInterval(() => {
-    console.log(scoreList);
-    console.log(bestScore);
-    console.log(enemies);
-    console.log(spawnTime);
-    console.log(stars.length)
-}, 1000);   
+// AIM DIRECTION
+let aimPointer;
+addEventListener('mousemove', function (event) {
+    let mouseAngle = Math.atan2(event.clientY - player.initPos.yPos, event.clientX - player.initPos.xPos);
+    let spacing = 10;
+    let xPos = player.initPos.xPos + Math.cos(mouseAngle) * (player.radius + spacing);
+    let yPos = player.initPos.yPos + Math.sin(mouseAngle) * (player.radius + spacing);
+    aimPointer = new Pointer(xPos, yPos, 5, mouseAngle);
+});
+
+
