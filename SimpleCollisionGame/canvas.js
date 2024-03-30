@@ -23,6 +23,9 @@ pauseBtn.style.display = 'none';
 
 //--------------------------------------------------------------------------------------------------------------------------------------------
 
+let shootSound1 = new Audio('audio_assets/shoot1.wav')
+let hitDamageSound1 = new Audio('audio_assets/hitDamage1.wav')
+hitDamageSound1.volume = 0.5; 
 
 // Objects
 const colors = [
@@ -398,6 +401,10 @@ function animate() {
                 enemy.InitPos.xPos += recoilDistance * Math.cos(projectile.angle)
                 enemy.InitPos.yPos += recoilDistance * Math.sin(projectile.angle)
 
+                // audio effect for hit
+                hitDamageSound1.currentTime = 0;
+                hitDamageSound1.play();
+
                 // create explosions
                 for (let i = 0; i < enemy.radius * 3; i++) {
                     particles.push(new Particle(
@@ -418,6 +425,7 @@ function animate() {
                     })
                     setTimeout(() => {
                         projectiles.splice(projectiles.indexOf(projectile), 1)
+
                     }, 0);
                 } else {
                     score += 250;
@@ -447,6 +455,11 @@ addEventListener('click', function (event) {
         angle
     );
     projectiles.push(projectile);
+    if (!pauseAnimation && playBtn.style.display == 'none') {
+        // playing audio
+        shootSound1.currentTime = 0;
+        shootSound1.play();
+    }
     // recoil
     const recoilDistance = 5;
     player.xPos -= recoilDistance * Math.cos(angle)
